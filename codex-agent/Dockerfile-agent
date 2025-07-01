@@ -1,0 +1,25 @@
+FROM codex-agent-base
+
+WORKDIR /app
+
+# Create /code directory and set permissions
+RUN mkdir -p /code && chmod 777 /code
+
+# Install Node.js (optional, only if you need npm codex for some reason)
+RUN apt-get update && \
+    apt-get install -y curl && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs
+
+# Download the official Codex CLI binary for x86_64 Linux
+RUN curl -L https://github.com/openai/codex/releases/latest/download/codex-x86_64-unknown-linux-musl -o /usr/local/bin/codex && \
+    chmod +x /usr/local/bin/codex
+
+# (Optional) Test the binary
+RUN /usr/local/bin/codex --help || echo "Codex binary not working"
+
+# Copy agent code
+COPY agent.py .
+
+# Set the entrypoint
+ENTRYPOINT ["python3.12", "/app/agent.py"]
